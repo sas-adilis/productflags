@@ -1,0 +1,61 @@
+.form-group.separator .col-lg-4 {
+  width: 100%;
+  text-align: center;
+  background-color: #f3f3f3;
+  padding: 18px 18px 16px;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.form-group.separator .col-lg-8 {
+  display: none;
+}
+
+#conditions {
+  display: flex;
+}
+#conditions .list-group {
+  border: 1px solid #ddd;
+  border-width: 1px;
+  margin-bottom: 0;
+}
+#conditions .list-group button {
+  width: 100%;
+  text-align: left;
+  min-width: 200px;
+  border-radius: 0;
+  border-width: 1px 0 0 0;
+}
+#conditions .list-group button:first-child {
+  border-top: 0;
+}
+#conditions .list-group button.is-active {
+  background: #363a41;
+  color: white;
+}
+#conditions .collapsing {
+  transition: none;
+  display: none;
+}
+#conditions .condition-collapse {
+  border: 1px solid #ddd;
+  margin-left: -1px;
+  width: 100%;
+  flex-grow: 1;
+  padding: 1rem;
+}
+#conditions .form-group-inline {
+  display: flex;
+  align-items: center;
+}
+#conditions .form-group-inline label {
+  margin-top: 0;
+  margin-right: 1rem;
+  white-space: nowrap;
+}
+#conditions .form-group-inline > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/*# sourceMappingURL=admin.css.map */

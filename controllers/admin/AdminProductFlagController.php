@@ -1,0 +1,303 @@
+<?php
+class AdminProductFlagController extends ModuleAdminController {
+
+    /** @var $module ProductFlags */
+    public $module;
+
+    /** @var $object ProductFlag */
+    public $object;
+
+    protected $position_identifier = 'id_product_flag';
+
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->table = 'product_flag';
+        $this->className = 'ProductFlag';
+
+        $this->identifier = 'id_product_flag';
+        $this->lang = true;
+        $this->list_id = 'product_flag';
+        $this->bootstrap = true;
+        $this->_defaultOrderBy = 'position';
+
+        $this->_select .= 'a.color as text_color';
+
+        $this->fields_list = array(
+            'id_product_flag' => array(
+                'title' => $this->l('ID'),
+                'align' => 'center',
+                'width' => 25
+            ),
+            'text' => array(
+                'title' => $this->l('Texte')
+            ),
+            'text_color' => array(
+                'type' => 'color',
+                'color' => 'color',
+                'title' => $this->l('Couleur du texte'),
+            ),
+            'background_color' => array(
+                'type' => 'color',
+                'color' => 'background_color',
+                'title' => $this->l('Couleur du fond'),
+            ),
+            'from' => array(
+                'title' => $this->l('From'),
+                'type' => 'date',
+            ),
+            'to' => array(
+                'title' => $this->l('To'),
+                'type' => 'date',
+            ),
+            'position' => array(
+                'title' => $this->l('Priority'),
+                'filter_key' => 'a!position',
+                'position' => 'position',
+                'align' => 'center',
+                'class' => 'fixed-width-xs'
+            ),
+            'active' => array(
+                'title' => $this->l('Active'),
+                'active' => 'status',
+                'type' => 'bool',
+                'class' => 'fixed-width-xs',
+                'align' => 'center',
+                'orderby' => false
+            )
+        );
+    }
+
+    public function setMedia($isNewTheme = false)
+    {
+        parent::setMedia($isNewTheme);
+        $this->addCSS($this->module->getPathUri().'views/css/admin.css');
+        $this->addJS($this->module->getPathUri().'views/js/admin.js');
+    }
+
+
+    public function renderForm()
+    {
+
+        $manufacturers = [];
+        foreach (Manufacturer::getManufacturers() as $manufacturer) {
+            if (!isset($manufacturers[$manufacturer['id_manufacturer']])) {
+                $manufacturers[$manufacturer['id_manufacturer']] = $manufacturer;
+            }
+        }
+        $manufacturers = array_values($manufacturers);
+
+        if (!Validate::isLoadedObject($this->object)) {
+            $this->object->from = date('Y-m-d H:i:s');
+            $this->object->to = date('Y-m-d H:i:s', strtotime('+1 year'));
+        } else {
+            $this->fields_value['conditions'] = Tools::getValue('conditions', json_decode($this->object->conditions, true));
+        }
+
+        $this->multiple_fieldsets = true;
+        $this->fields_form[]['form'] = array(
+            'legend' => [
+                'title' => $this->l('Product Flag'),
+                'icon' => 'icon-flag'
+            ],
+            'input' => [
+                [
+                    'type' => 'text',
+                    'name' => 'text',
+                    'id' => 'text',
+                    'label' => $this->l('Text'),
+                    'required' => true,
+                    'lang' => true,
+                ],
+                [
+                    'type' => 'separator',
+                    'form_group_class' => 'separator',
+                    'name' => 'separator_colors',
+                    'label' => $this->l('Colors'),
+                ],
+                [
+                    'type' => 'color',
+                    'name' => 'color',
+                    'id' => 'color',
+                    'label' => $this->l('Text color'),
+                    'required' => true,
+                ],
+                [
+                    'type' => 'color',
+                    'name' => 'background_color',
+                    'id' => 'background_color',
+                    'label' => $this->l('Background color'),
+                    'required' => true,
+                ],
+                [
+                    'type' => 'separator',
+                    'form_group_class' => 'separator',
+                    'name' => 'separator_colors',
+                    'label' => $this->l('Display conditions'),
+                ],
+                [
+                    'type' => 'conditions',
+                    'label' => $this->l('Conditions'),
+                    'name' => 'conditions',
+                    'categories' => $this->getCategories(),
+                    'manufacturers' => $manufacturers,
+                    'suppliers' => Supplier::getSuppliers(),
+                    'products' => Product::getProducts($this->context->language->id, 0, 1000, 'name', 'asc'),
+                    'desc' => $this->l('Define here the conditions under which this flag will be displayed on products. If no conditions are defined or met, products displaying this flag must be selected manually from the product sheet in the back office.'),
+                ],
+                [
+                    'type' => 'datetime',
+                    'label' => $this->l('From'),
+                    'name' => 'from',
+                    'desc' => $this->l('Format: YYYY-MM-DD HH:MM:SS'),
+                ],
+                [
+                    'type' => 'datetime',
+                    'label' => $this->l('To'),
+                    'name' => 'to',
+                    'desc' => $this->l('Format: YYYY-MM-DD HH:MM:SS'),
+                ],
+                [
+                    'type' => 'switch',
+                    'label' => $this->l('Active'),
+                    'name' => 'active',
+                    'required' => true,
+                    'is_bool' => true,
+                    'values' => [
+                        [
+                            'id' => 'active_on',
+                            'value' => 1,
+                            'label' => $this->l('Enabled')
+                        ],
+                        [
+                            'id' => 'active_off',
+                            'value' => 0,
+                            'label' => $this->l('Disabled')
+                        ]
+                    ]
+                ]
+            ],
+            'buttons' => array(
+                'saveAndStay' => array(
+                    'title' => $this->l('Save and stay'),
+                    'name' => 'submitAdd' . $this->table . 'AndStay',
+                    'type' => 'submit',
+                    'class' => 'btn btn-default pull-right',
+                    'icon' => 'process-icon-save',
+                ),
+            ),
+            'submit' => array(
+                'title' => $this->l('Save'),
+            ),
+        );
+        return parent::renderForm();
+
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function ajaxProcessUpdatePositions()
+    {
+        $way = (int)Tools::getValue('way');
+        $id_product_flag = (int)Tools::getValue('id');
+        $positions = Tools::getValue($this->table);
+
+        foreach ($positions as $position => $value) {
+            $pos = explode('_', $value);
+            if (isset($pos[2]) && (int)$pos[2] === $id_product_flag) {
+                if ($product_flag = new ProductFlag((int)$pos[2])) {
+                    if (isset($position) && $product_flag->updatePosition($way, $position)) {
+                        echo 'ok position '.(int)$position.' for flag '.(int)$pos[1].'\r\n';
+                    } else {
+                        echo '{"hasError" : true, "errors" : ';
+                        echo '"Can not update flag '.(int)$id_product_flag.' to position '.(int)$position.' "}';
+                    }
+                } else {
+                    echo '{"hasError" : true, "errors" : ';
+                    echo '"This flag ('.(int)$id_product_flag.') can t be loaded"}';
+                }
+                break;
+            }
+        }
+    }
+
+    public function getCategories(): array
+    {
+        $categories_array = [];
+        $categories = Category::getNestedCategories($this->context->shop->id_category, false, false);
+
+        // Fonction récursive interne
+        $walk = function ($category, &$categories_array, $breadcrumb = '') use (&$walk) {
+            $name = $breadcrumb ? $breadcrumb . ' > ' . $category['name'] : $category['name'];
+            $categories_array[] = [
+                'id_category' => $category['id_category'],
+                'name' => $name,
+            ];
+            if (isset($category['children']) && is_array($category['children'])) {
+                foreach ($category['children'] as $children) {
+                    $walk($children, $categories_array, $name);
+                }
+            }
+        };
+
+        $walk($categories[$this->context->shop->id_category], $categories_array);
+
+        return $categories_array;
+    }
+
+    /**
+     * @param ProductFlag $object
+     */
+    protected function copyFromPost(&$object, $table)
+    {
+        parent::copyFromPost($object, $table);
+
+        $conditions = [];
+        $conditions_posted = Tools::getValue('conditions', []);
+
+        if (!empty($conditions_posted['category'])) {
+            $conditions['category'] = array_map('intval', $conditions_posted['category']);
+        }
+
+        if (!empty($conditions_posted['manufacturer']) && (int)$conditions_posted['manufacturer']) {
+            $conditions['manufacturer'] = (int)$conditions_posted['manufacturer'];
+        }
+
+        if (!empty($conditions_posted['supplier']) && (int)$conditions_posted['supplier']) {
+            $conditions['supplier'] = (int)$conditions_posted['supplier'];
+        }
+
+        if (!empty($conditions_posted['new']) && (int)$conditions_posted['new']) {
+            $conditions['new'] = 1;
+        }
+
+        if (!empty($conditions_posted['sale']) && (int)$conditions_posted['sale']) {
+            $conditions['sale'] = 1;
+        }
+
+        if (!empty($conditions_posted['quantity_from']) && (int)$conditions_posted['quantity_from']) {
+            $conditions['quantity_from'] = (int)$conditions_posted['quantity_from'];
+        }
+
+        if (!empty($conditions_posted['quantity_to']) && (int)$conditions_posted['quantity_to']) {
+            $conditions['quantity_to'] = (int)$conditions_posted['quantity_to'];
+        }
+
+        if (!empty($conditions_posted['exclude'])) {
+            $conditions['exclude'] = array_map('intval', $conditions_posted['exclude']);
+        }
+
+        if (!empty($conditions_posted['include'])) {
+            $conditions['include'] = array_map('intval', $conditions_posted['include']);
+            if (isset($conditions['exclude'])) {
+                $conditions['include'] = array_values(array_diff($conditions['include'], $conditions['exclude']));
+            }
+        }
+
+        $object->conditions = json_encode($conditions);
+    }
+}
