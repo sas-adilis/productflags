@@ -56,7 +56,7 @@ class ProductFlag extends ObjectModel
     /**
      * @throws PrestaShopDatabaseException
      */
-    private static function getFlags(int $id_lang, bool $active_only = true)
+    public static function getFlags(int $id_lang, bool $active_only = true, bool $check_dates = true)
     {
         $key = $id_lang . '_' . (int) $active_only;
         if (isset(self::$cache_flags[$key])) {
@@ -67,8 +67,10 @@ class ProductFlag extends ObjectModel
         $query->select('*');
         $query->from('product_flag', 'p');
         $query->innerJoin('product_flag_lang', 'l', 'p.id_product_flag = l.id_product_flag AND l.id_lang = ' . (int) $id_lang);
-        $query->where('`from` <= NOW()');
-        $query->where('`to` >= NOW()');
+        if ($check_dates) {
+            $query->where('`from` <= NOW()');
+            $query->where('`to` >= NOW()');
+        }
         if ($active_only) {
             $query->where('p.active = 1');
         }
@@ -95,7 +97,6 @@ class ProductFlag extends ObjectModel
         if (isset(self::$cache_product_flag[$key])) {
             return self::$cache_product_flag[$key];
         }
-
 
         $id_manufacturer = (int) $product['id_manufacturer'];
         $quantity = (int) $product['quantity_all_versions'];

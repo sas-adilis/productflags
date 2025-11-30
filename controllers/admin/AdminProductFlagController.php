@@ -333,4 +333,30 @@ class AdminProductFlagController extends ModuleAdminController {
             $this->redirect_after = self::$currentIndex . '&conf=19&token=' . $this->token;
         }
     }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    protected function afterDelete($object, $old_id): bool
+    {
+        return $this->module->generateCSSFile();
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    protected function afterAdd($object): bool
+    {
+        return $this->module->generateCSSFile();
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    protected function afterUpdate($object): bool
+    {
+        return $this->module->generateCSSFile();
+    }
+
+
 }

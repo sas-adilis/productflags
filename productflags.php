@@ -32,6 +32,7 @@ class ProductFlags extends Module
         return
             $this->installTab()
             && parent::install()
+            && $this->registerHook('displayHeader')
             && $this->registerHook('actionProductFlagsModifier');
     }
 
@@ -111,5 +112,39 @@ class ProductFlags extends Module
                 ];
             }
         }
+    }
+
+    public function hookDisplayHeader()
+    {
+        $this->context->controller->registerStylesheet(
+            'module-productflags-css',
+            'modules/'.$this->name.'/views/css/productflags.css',
+            [
+                'media' => 'all',
+                'priority' => 150,
+            ]
+        );
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public function generateCSSFile(): bool
+    {
+        $flags = ProductFlag::getFlags($this->context->language->id, true, false);
+        $css = '';
+        foreach ($flags as $flag) {
+            $css .= '.product-flags .product-flag.product-flag-'.$flag['id_product_flag'].' {';
+            $css .= 'color: '.$flag['color'].';';
+            $css .= 'background-color: '.$flag['background_color'].';';
+            $css .= '}';
+        }
+
+        $result = file_put_contents($this->getLocalPath().'/views/css/productflags.css', $css);
+        if ($result === false) {
+            PrestaShopLogger::addLog('ProductFlags: Failed to write CSS file.', 3, null, 'ProductFlags', null, true);
+        }
+
+        return $result !== false;
     }
 }
