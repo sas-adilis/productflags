@@ -11,6 +11,12 @@
   display: none;
 }
 
+.flag {
+  padding: 0.25rem 0.5rem;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
 #conditions {
   display: flex;
 }

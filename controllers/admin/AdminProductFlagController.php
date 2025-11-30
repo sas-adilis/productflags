@@ -23,7 +23,9 @@ class AdminProductFlagController extends ModuleAdminController {
         $this->bootstrap = true;
         $this->_defaultOrderBy = 'position';
 
-        $this->_select .= 'a.color as text_color';
+        $this->addRowAction('edit');
+        $this->addRowAction('delete');
+        $this->addRowAction('duplicate');
 
         $this->fields_list = array(
             'id_product_flag' => array(
@@ -32,17 +34,8 @@ class AdminProductFlagController extends ModuleAdminController {
                 'width' => 25
             ),
             'text' => array(
-                'title' => $this->l('Texte')
-            ),
-            'text_color' => array(
-                'type' => 'color',
-                'color' => 'color',
-                'title' => $this->l('Couleur du texte'),
-            ),
-            'background_color' => array(
-                'type' => 'color',
-                'color' => 'background_color',
-                'title' => $this->l('Couleur du fond'),
+                'title' => $this->l('Texte'),
+                'callback' => 'displayFlag',
             ),
             'from' => array(
                 'title' => $this->l('From'),
@@ -196,6 +189,27 @@ class AdminProductFlagController extends ModuleAdminController {
 
     }
 
+
+
+    public function initProcess()
+    {
+        if (Tools::getIsset('duplicate' . $this->table)) {
+            if ($this->access('add')) {
+                $this->action = 'duplicate';
+            } else {
+                $this->errors[] = Tools::displayError('You do not have permission to add this.');
+            }
+        } else {
+            parent::initProcess();
+        }
+    }
+
+    public function displayFlag($text, $row): string
+    {
+        $style = 'color: '.$row['color'].'; background-color: '.$row['background_color'].';';
+        return '<span class="flag" style="'.$style.'">'.htmlspecialchars($text).'</span>';
+    }
+
     /**
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
@@ -299,5 +313,24 @@ class AdminProductFlagController extends ModuleAdminController {
         }
 
         $object->conditions = json_encode($conditions);
+    }
+
+    public function processDuplicate()
+    {
+        $object = new $this->className((int) Tools::getValue($this->identifier));
+        if (Validate::isLoadedObject($object)) {
+            $clone = clone $object;
+            $clone->active = 0;
+            unset($clone->id);
+            if (!$clone->add()) {
+                $this->errors[] = Tools::displayError('An error occurred while duplicate an object.');
+            }
+        } else {
+            $this->errors[] = Tools::displayError('An error occurred while duplicate an object.');
+        }
+
+        if (!count($this->errors) && isset($clone)) {
+            $this->redirect_after = self::$currentIndex . '&conf=19&token=' . $this->token;
+        }
     }
 }

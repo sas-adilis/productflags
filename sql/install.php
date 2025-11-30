@@ -22,7 +22,7 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'product_flag` (
     `active` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
     `from` datetime DEFAULT NULL,
     `to` datetime DEFAULT NULL,
-    `date_add` datetime NOT NULLg
+    `date_add` datetime NOT NULL,
     `date_upd` datetime NOT NULL,
     PRIMARY KEY (`id_product_flag`)
 ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';

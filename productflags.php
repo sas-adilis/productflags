@@ -31,7 +31,8 @@ class ProductFlags extends Module
 
         return
             $this->installTab()
-            && parent::install();
+            && parent::install()
+            && $this->registerHook('actionProductFlagsModifier');
     }
 
 
@@ -85,5 +86,30 @@ class ProductFlags extends Module
 
     public function getContent() {
         Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminProductFlag'));
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public function hookActionProductFlagsModifier($params)
+    {
+        if (!isset($params['product']) || !is_array($params['product'])) {
+            return;
+        }
+
+        $flags = ProductFlag::getProductFlags($params['product']);
+
+
+        if (!empty($flags)) {
+            foreach ($flags as $flag) {
+                $type = 'product-flag-'.$flag['id_product_flag'];
+                $params['flags'][$type] = [
+                    'type' => $type,
+                    'label' => $flag['text'],
+                    'color' => $flag['color'],
+                    'background_color' => $flag['background_color']
+                ];
+            }
+        }
     }
 }
