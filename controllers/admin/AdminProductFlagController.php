@@ -22,6 +22,7 @@ class AdminProductFlagController extends ModuleAdminController {
         $this->list_id = 'product_flag';
         $this->bootstrap = true;
         $this->_defaultOrderBy = 'position';
+        $this->show_form_cancel_button = false;
 
         $this->addRowAction('edit');
         $this->addRowAction('delete');
@@ -173,6 +174,11 @@ class AdminProductFlagController extends ModuleAdminController {
                 ]
             ],
             'buttons' => array(
+                'cancel' => array(
+                    'title' => $this->l('Back to list'),
+                    'href' => (Tools::safeOutput(Tools::getValue('back'))) ?: $this->context->link->getAdminLink('AdminProductFlag'),
+                    'icon' => 'process-icon-cancel',
+                ),
                 'saveAndStay' => array(
                     'title' => $this->l('Save and stay'),
                     'name' => 'submitAdd' . $this->table . 'AndStay',
@@ -333,30 +339,4 @@ class AdminProductFlagController extends ModuleAdminController {
             $this->redirect_after = self::$currentIndex . '&conf=19&token=' . $this->token;
         }
     }
-
-    /**
-     * @throws PrestaShopDatabaseException
-     */
-    protected function afterDelete($object, $old_id): bool
-    {
-        return $this->module->generateCSSFile();
-    }
-
-    /**
-     * @throws PrestaShopDatabaseException
-     */
-    protected function afterAdd($object): bool
-    {
-        return $this->module->generateCSSFile();
-    }
-
-    /**
-     * @throws PrestaShopDatabaseException
-     */
-    protected function afterUpdate($object): bool
-    {
-        return $this->module->generateCSSFile();
-    }
-
-
 }

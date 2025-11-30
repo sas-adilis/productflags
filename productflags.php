@@ -33,7 +33,11 @@ class ProductFlags extends Module
             $this->installTab()
             && parent::install()
             && $this->registerHook('displayHeader')
-            && $this->registerHook('actionProductFlagsModifier');
+            && $this->registerHook('actionProductFlagsModifier')
+            && $this->registerHook('actionObjectProductFlagAddAfter')
+            && $this->registerHook('actionObjectProductFlagUpdateAfter')
+            && $this->registerHook('actionObjectProductFlagDeleteAfter')
+            ;
     }
 
 
@@ -146,5 +150,31 @@ class ProductFlags extends Module
         }
 
         return $result !== false;
+    }
+
+
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public function hookActionObjectProductFlagAddAfter()
+    {
+        $this->generateCSSFile();
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public function hookActionObjectProductFlagUpdateAfter($object)
+    {
+        $this->generateCSSFile();
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public function hookActionObjectProductFlagDeleteAfter($object)
+    {
+        $this->generateCSSFile();
     }
 }
