@@ -35,7 +35,7 @@ class AdminProductFlagController extends ModuleAdminController {
                 'width' => 25
             ),
             'text' => array(
-                'title' => $this->l('Texte'),
+                'title' => $this->l('Text'),
                 'callback' => 'displayFlag',
             ),
             'from' => array(

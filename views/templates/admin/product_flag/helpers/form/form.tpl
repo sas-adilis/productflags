@@ -89,7 +89,7 @@
                         {/foreach}
                     </select>
                     <p class="help-block">
-                        {l s='Select additionnals products for which the sticker will be displayed' mod='productflags'}
+                        {l s='Select additionnals products for which the flag will be displayed' mod='productflags'}
                     </p>
                 </div>
                 <div class="form-group">
@@ -100,7 +100,7 @@
                         {/foreach}
                     </select>
                     <p class="help-block">
-                        {l s='Select products for which the sticker will not be displayed' mod='productflags'}
+                        {l s='Select products for which the flag will not be displayed' mod='productflags'}
                     </p>
                 </div>
             </div>
