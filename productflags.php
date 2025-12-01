@@ -33,6 +33,8 @@ class ProductFlags extends Module
             $this->installTab()
             && parent::install()
             && $this->registerHook('displayHeader')
+            && $this->registerHook('displayBackofficeHeader')
+            && $this->registerHook('displayAdminProductsExtra')
             && $this->registerHook('actionProductFlagsModifier')
             && $this->registerHook('actionObjectProductFlagAddAfter')
             && $this->registerHook('actionObjectProductFlagUpdateAfter')
@@ -176,5 +178,63 @@ class ProductFlags extends Module
     public function hookActionObjectProductFlagDeleteAfter($object)
     {
         $this->generateCSSFile();
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public function hookDisplayAdminProductsExtra($params)
+    {
+        $id_product = Tools::getValue('id_product', (int) $params['id_product']);
+        $product = new Product($id_product, true, $this->context->language->id);
+        $productArray = [
+            'id_product' => $product->id,
+            'new' => $product->new,
+            'sale' => $product->on_sale,
+            'id_manufacturer' => $product->id_manufacturer,
+            'quantity_all_versions' => StockAvailable::getQuantityAvailableByProduct($product->id),
+        ];
+
+        $available_flags = ProductFlag::getFlags($this->context->language->id, false, false);
+        ProductFlag::prepareCachesForFlags($available_flags);
+
+        foreach ($available_flags as &$flag) {
+            $flag['active'] = 'auto';
+            $flag['auto_criteria'] = $this->l('No');
+            $conditions = $flag['conditions'] ?? [];
+            if (!empty($conditions['include']) && in_array($id_product, $conditions['include'])) {
+                $flag['active'] = 1;
+                continue;
+            }
+
+            if (!empty($conditions['exclude']) && in_array($id_product, $conditions['exclude'])) {
+                $flag['active'] = 0;
+                continue;
+            }
+
+            $flag['auto_criteria'] = ProductFlag::canApply($flag, $productArray) ? $this->l('Yes') : $this->l('No');
+        }
+        unset($flag);
+
+        $this->context->smarty->assign(
+            [
+                'available_flags' => $available_flags,
+                'ajax_url' => Context::getContext()->link->getAdminLink('AdminProductFlag', true, [], [
+                    'ajax' => 1,
+                    'action' =>'updateProduct',
+                    'id_product' => $id_product,
+                ]),
+            ]
+        );
+        return $this->display(__FILE__, 'admin-products-extra.tpl');
+    }
+
+    public function hookDisplayBackofficeHeader()
+    {
+        if (Tools::getValue('controller') != 'AdminProducts') {
+            return;
+        }
+        $this->context->controller->addJs($this->_path.'views/js/admin-product.js');
+        $this->context->controller->addCss($this->_path.'views/css/admin-product.css');
     }
 }

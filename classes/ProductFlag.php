@@ -98,94 +98,14 @@ class ProductFlag extends ObjectModel
             return self::$cache_product_flag[$key];
         }
 
-        $id_manufacturer = (int) $product['id_manufacturer'];
-        $quantity = (int) $product['quantity_all_versions'];
-
         $flags = self::getFlags($id_lang, $active_only);
-
-        if (!self::isSupplierCacheReady()) {
-            $ids_suppliers = [];
-            foreach ($flags as $flag) {
-                $conditions = $flag['conditions'] ?? [];
-                if (!empty($conditions['supplier']) && (int)$conditions['supplier']) {
-                    $ids_suppliers[] = (int)$conditions['supplier'];
-                }
-            }
-            if (count($ids_suppliers) > 0) {
-                $ids_suppliers = array_unique($ids_suppliers);
-                self::prepareProductSupplierCache($ids_suppliers);
-            }
-        }
-
-        if (!self::isCategoryCacheReady()) {
-            $id_categories = [];
-            foreach ($flags as $flag) {
-                $conditions = $flag['conditions'] ?? [];
-                if (!empty($conditions['category'] && is_array($conditions['category']))) {
-                    $id_categories  = array_merge($id_categories, $conditions['category']);
-                }
-            }
-            if (count($id_categories) > 0) {
-                $id_categories = array_unique($id_categories);
-                self::prepareProductCategoryCache($id_categories);
-            }
-        }
-
-
+        self::prepareCachesForFlags($flags, $product);
 
         $product_flags = [];
         foreach ($flags as $flag) {
-            $conditions = $flag['conditions'] ?? [];
-
-            if (!empty($conditions['include']) && in_array($id_product, $conditions['include'])) {
+            if (self::canApply($flag, $product)) {
                 $product_flags[] = $flag;
-                continue;
             }
-
-            if (!empty($conditions['exclude']) && in_array($id_product, $conditions['exclude'])) {
-                continue;
-            }
-
-            if (!empty($conditions['manufacturer']) && (int)$conditions['manufacturer'] && (int)$conditions['manufacturer'] != $id_manufacturer) {
-                continue;
-            }
-
-            if (!empty($conditions['supplier']) && (int)$conditions['supplier'] && !self::isProductFromSupplier($id_product, (int)$conditions['supplier'])) {
-                continue;
-            }
-
-            if (!empty($conditions['new']) && (int)$conditions['new'] && !(int)$product['new']) {
-                continue;
-            }
-
-            if (!empty($conditions['sale']) && (int)$conditions['sale'] && !(int)$product['sale']) {
-                continue;
-            }
-
-            if (!empty($conditions['quantity_from']) && (int)$conditions['quantity_from'] && (int)$conditions['quantity_from'] > $quantity) {
-                continue;
-            }
-
-            if (!empty($conditions['quantity_to']) && (int)$conditions['quantity_to'] && (int)$conditions['quantity_to'] < $quantity) {
-                continue;
-            }
-
-            if (!empty($conditions['category'] && is_array($conditions['category']))) {
-                $has_at_least_one = false;
-                foreach ($conditions['category'] as $id_category) {
-                    if (self::isProductInCategory($id_product, (int)$id_category)) {
-                        $has_at_least_one = true;
-                        break;
-
-                    }
-                }
-
-                if (!$has_at_least_one) {
-                    continue;
-                }
-            }
-
-            $product_flags[] = $flag;
         }
 
         self::$cache_product_flag[$key] = $product_flags;
@@ -273,6 +193,97 @@ class ProductFlag extends ObjectModel
                     self::$cache_product_category[$row['id_category']] = [];
                 }
                 self::$cache_product_category[$row['id_category']][$row['id_product']] = 1;
+            }
+        }
+    }
+
+    public static function canApply(array $flag, array $product): bool
+    {
+        $conditions = $flag['conditions'] ?? [];
+        $id_product = (int) $product['id_product'];
+        $id_manufacturer = (int) $product['id_manufacturer'];
+        $quantity = (int) $product['quantity_all_versions'];
+
+        if (!empty($conditions['include']) && in_array($id_product, $conditions['include'])) {
+            return true;
+        }
+
+        if (!empty($conditions['exclude']) && in_array($id_product, $conditions['exclude'])) {
+            return false;
+        }
+
+        if (!empty($conditions['manufacturer']) && (int)$conditions['manufacturer'] && (int)$conditions['manufacturer'] != $id_manufacturer) {
+            return false;
+        }
+
+        if (!empty($conditions['supplier']) && (int)$conditions['supplier'] && !self::isProductFromSupplier($id_product, (int)$conditions['supplier'])) {
+            return false;
+        }
+
+        if (!empty($conditions['new']) && (int)$conditions['new'] && !(int)$product['new']) {
+            return false;
+        }
+
+        if (!empty($conditions['sale']) && (int)$conditions['sale'] && !(int)$product['sale']) {
+            return false;
+        }
+
+        if (!empty($conditions['quantity_from']) && (int)$conditions['quantity_from'] && (int)$conditions['quantity_from'] > $quantity) {
+            return false;
+        }
+
+        if (!empty($conditions['quantity_to']) && (int)$conditions['quantity_to'] && (int)$conditions['quantity_to'] < $quantity) {
+            return false;
+        }
+
+        if (!empty($conditions['category']) && is_array($conditions['category'])) {
+            $has_at_least_one = false;
+            foreach ($conditions['category'] as $id_category) {
+                if (self::isProductInCategory($id_product, (int)$id_category)) {
+                    $has_at_least_one = true;
+                    break;
+
+                }
+            }
+
+            if (!$has_at_least_one) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     */
+    public static function prepareCachesForFlags($flags)
+    {
+        if (!self::isSupplierCacheReady()) {
+            $ids_suppliers = [];
+            foreach ($flags as $flag) {
+                $conditions = $flag['conditions'] ?? [];
+                if (!empty($conditions['supplier']) && (int)$conditions['supplier']) {
+                    $ids_suppliers[] = (int)$conditions['supplier'];
+                }
+            }
+            if (count($ids_suppliers) > 0) {
+                $ids_suppliers = array_unique($ids_suppliers);
+                self::prepareProductSupplierCache($ids_suppliers);
+            }
+        }
+
+        if (!self::isCategoryCacheReady()) {
+            $id_categories = [];
+            foreach ($flags as $flag) {
+                $conditions = $flag['conditions'] ?? [];
+                if (!empty($conditions['category']) && is_array($conditions['category'])) {
+                    $id_categories  = array_merge($id_categories, $conditions['category']);
+                }
+            }
+            if (count($id_categories) > 0) {
+                $id_categories = array_unique($id_categories);
+                self::prepareProductCategoryCache($id_categories);
             }
         }
     }

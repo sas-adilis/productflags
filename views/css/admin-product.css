@@ -1,0 +1,21 @@
+.module-productflags .product-flag-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.module-productflags .product-flag-item .flag {
+  padding: 0.25rem 0.5rem;
+  display: inline-block;
+  text-transform: uppercase;
+}
+.module-productflags .product-flag-item a {
+  font-size: 0.85rem;
+}
+.module-productflags .product-flag-item a i {
+  font-size: 1rem;
+}
+.module-productflags .product-flag-item + .product-flag-item {
+  margin-top: 1rem;
+}
+
+/*# sourceMappingURL=admin-product.css.map */

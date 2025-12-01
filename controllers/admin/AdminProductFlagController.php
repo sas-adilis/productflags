@@ -339,4 +339,71 @@ class AdminProductFlagController extends ModuleAdminController {
             $this->redirect_after = self::$currentIndex . '&conf=19&token=' . $this->token;
         }
     }
+
+    public function ajaxProcessUpdateProduct() {
+        $id_product = (int)Tools::getValue('id_product');
+        $id_product_flag = (int)Tools::getValue('id_product_flag');
+        $active = Tools::getValue('active');
+
+        $product_flag = new ProductFlag($id_product_flag);
+        if (!Validate::isLoadedObject($product_flag)) {
+            $result = ['success' => false, 'error' => 'Invalid product flag'];
+            exit(json_encode($result));
+        }
+
+        $conditions = json_decode($product_flag->conditions, true);
+        if (!is_array($conditions)) {
+            $conditions = [];
+        }
+
+        switch ($active) {
+            case '1':
+                // Activate flag for this product
+                if (empty($conditions['include'])) {
+                    $conditions['include'] = [];
+                }
+                if (!in_array($id_product, $conditions['include'])) {
+                    $conditions['include'][] = $id_product;
+                }
+                // Remove from exclude if present
+                if (!empty($conditions['exclude'])) {
+                    $conditions['exclude'] = array_diff($conditions['exclude'], [$id_product]);
+                }
+                break;
+            case '0':
+                // Deactivate flag for this product
+                if (empty($conditions['exclude'])) {
+                    $conditions['exclude'] = [];
+                }
+                if (!in_array($id_product, $conditions['exclude'])) {
+                    $conditions['exclude'][] = $id_product;
+                }
+                // Remove from include if present
+                if (!empty($conditions['include'])) {
+                    $conditions['include'] = array_diff($conditions['include'], [$id_product]);
+                }
+                break;
+            case 'auto':
+                // Remove from both include and exclude
+                if (!empty($conditions['include'])) {
+                    $conditions['include'] = array_diff($conditions['include'], [$id_product]);
+                }
+                if (!empty($conditions['exclude'])) {
+                    $conditions['exclude'] = array_diff($conditions['exclude'], [$id_product]);
+                }
+                break;
+            default:
+                $result = ['success' => false, 'error' => 'Invalid active value'];
+                exit(json_encode($result));
+        }
+
+        $product_flag->conditions = json_encode($conditions);
+        if (!$product_flag->save()) {
+            $result = ['success' => false, 'error' => 'Failed to save product flag'];
+            exit(json_encode($result));
+        }
+
+        $result = ['success' => true];
+        exit(json_encode($result));
+    }
 }
