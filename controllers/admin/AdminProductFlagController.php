@@ -53,6 +53,13 @@ class AdminProductFlagController extends ModuleAdminController {
                 'align' => 'center',
                 'class' => 'fixed-width-xs'
             ),
+            'stop_after' => array(
+                'title' => $this->l('Stop after this flag'),
+                'active' => 'stop_after',
+                'class' => 'fixed-width-xs',
+                'align' => 'center',
+                'orderby' => false
+            ),
             'active' => array(
                 'title' => $this->l('Active'),
                 'active' => 'status',
@@ -68,11 +75,12 @@ class AdminProductFlagController extends ModuleAdminController {
     {
         parent::setMedia($isNewTheme);
         $this->addCSS($this->module->getPathUri().'views/css/admin.css');
+        $this->addJS('https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.5.2/jscolor.min.js');
         $this->addJS($this->module->getPathUri().'views/js/admin.js');
     }
 
 
-    public function renderForm()
+    public function renderForm(): string
     {
 
         $manufacturers = [];
@@ -106,6 +114,18 @@ class AdminProductFlagController extends ModuleAdminController {
                     'lang' => true,
                 ],
                 [
+                    'type' => 'switch',
+                    'name' => 'stop_after',
+                    'required' => true,
+                    'is_bool' => true,
+                    'label' => $this->l('Stop after this flag'),
+                    'desc' => $this->l('If enabled, no other flags will be displayed after this one.'),
+                    'values' => [
+                        ['id' => 'stop_after_on', 'value' => 1, 'label' => $this->l('Yes')],
+                        ['id' => 'stop_after_off', 'value' => 0, 'label' => $this->l('No')],
+                    ]
+                ],
+                [
                     'type' => 'separator',
                     'form_group_class' => 'separator',
                     'name' => 'separator_colors',
@@ -117,6 +137,7 @@ class AdminProductFlagController extends ModuleAdminController {
                     'id' => 'color',
                     'label' => $this->l('Text color'),
                     'required' => true,
+                    'class' => 'fixed-width-lg',
                 ],
                 [
                     'type' => 'color',
@@ -124,6 +145,7 @@ class AdminProductFlagController extends ModuleAdminController {
                     'id' => 'background_color',
                     'label' => $this->l('Background color'),
                     'required' => true,
+                    'class' => 'fixed-width-lg',
                 ],
                 [
                     'type' => 'separator',
@@ -196,7 +218,9 @@ class AdminProductFlagController extends ModuleAdminController {
     }
 
 
-
+    /**
+     * @throws PrestaShopException
+     */
     public function initProcess()
     {
         if (Tools::getIsset('duplicate' . $this->table)) {
@@ -204,6 +228,13 @@ class AdminProductFlagController extends ModuleAdminController {
                 $this->action = 'duplicate';
             } else {
                 $this->errors[] = Tools::displayError('You do not have permission to add this.');
+            }
+        } elseif ((isset($_GET['stop_after' . $this->table]) || isset($_GET['stop_after'])) && Tools::getValue($this->identifier)) {
+            /* Change object status (active, inactive) */
+            if ($this->access('edit')) {
+                $this->action = 'stop_after';
+            } else {
+                $this->errors[] = $this->trans('You do not have permission to edit this.', [], 'Admin.Notifications.Error');
             }
         } else {
             parent::initProcess();
@@ -234,11 +265,11 @@ class AdminProductFlagController extends ModuleAdminController {
                         echo 'ok position '.(int)$position.' for flag '.(int)$pos[1].'\r\n';
                     } else {
                         echo '{"hasError" : true, "errors" : ';
-                        echo '"Can not update flag '.(int)$id_product_flag.' to position '.(int)$position.' "}';
+                        echo '"Can not update flag '. $id_product_flag .' to position '.(int)$position.' "}';
                     }
                 } else {
                     echo '{"hasError" : true, "errors" : ';
-                    echo '"This flag ('.(int)$id_product_flag.') can t be loaded"}';
+                    echo '"This flag ('. $id_product_flag .') can t be loaded"}';
                 }
                 break;
             }
@@ -321,6 +352,9 @@ class AdminProductFlagController extends ModuleAdminController {
         $object->conditions = json_encode($conditions);
     }
 
+    /**
+     * @throws PrestaShopException
+     */
     public function processDuplicate()
     {
         $object = new $this->className((int) Tools::getValue($this->identifier));
@@ -340,6 +374,10 @@ class AdminProductFlagController extends ModuleAdminController {
         }
     }
 
+    /**
+     * @throws PrestaShopException
+     * @throws PrestaShopDatabaseException
+     */
     public function ajaxProcessUpdateProduct() {
         $id_product = (int)Tools::getValue('id_product');
         $id_product_flag = (int)Tools::getValue('id_product_flag');
@@ -405,5 +443,31 @@ class AdminProductFlagController extends ModuleAdminController {
 
         $result = ['success' => true];
         exit(json_encode($result));
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function processStopAfter(): ProductFlag
+    {
+        /** @var ProductFlag $object */
+        if (Validate::isLoadedObject($object = $this->loadObject())) {
+            $object->stop_after = !$object->stop_after;
+            if ($object->update()) {
+                $this->redirect_after = self::$currentIndex . '&token=' . $this->token;
+                $page = (int) Tools::getValue('page');
+                $page = $page > 1 ? '&submitFilter' . $this->table . '=' . $page : '';
+                $this->redirect_after .= '&conf=5' . $page;
+            } else {
+                $this->errors[] = $this->trans('An error occurred while updating the status.', [], 'Admin.Notifications.Error');
+            }
+        } else {
+            $this->errors[] = $this->trans('An error occurred while updating the status for an object.', [], 'Admin.Notifications.Error') .
+                ' <b>' . $this->table . '</b> ' .
+                $this->trans('(cannot load object)', [], 'Admin.Notifications.Error');
+        }
+
+        return $object;
     }
 }

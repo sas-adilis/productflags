@@ -12,11 +12,15 @@ $_MODULE['<{productflags}prestashop>adminproductflagcontroller_9dffbf69ffba8bc38
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_5da618e8e4b89c66fe86e32cdafde142'] = 'De';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_e12167aa0a7698e6ebc92b4ce3909b53'] = 'à';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_502996d9790340c5fd7b86a5b93b1c9f'] = 'Priorité';
+$_MODULE['<{productflags}prestashop>adminproductflagcontroller_9ea0c721d19c2947369982271c74bff5'] = 'Arrêter après ce drapeau ';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_4d3d769b812b6faa6b76e1a8abaece2d'] = 'Actif';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_98f2392c2639fbec5ba49e3d28925804'] = 'Drapeau produit';
+$_MODULE['<{productflags}prestashop>adminproductflagcontroller_940a1fde466459a84e4a64fda02c091e'] = 'Si cette option est activée, aucun autre drapeau ne s\'affichera après celui-ci.';
+$_MODULE['<{productflags}prestashop>adminproductflagcontroller_93cba07454f06a4a960172bbd6e2a435'] = 'Oui';
+$_MODULE['<{productflags}prestashop>adminproductflagcontroller_bafd7322c6e97d25b6299b5d6fe8920b'] = 'Non';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_5d50889672f6f860d14f502de3de1957'] = 'Couleurs';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_5f111ae4c490902059da2004cbc8b424'] = 'Couleur du texte';
-$_MODULE['<{productflags}prestashop>adminproductflagcontroller_368d9ac76af05f714092bc808a426bfc'] = 'Couleur de fonf';
+$_MODULE['<{productflags}prestashop>adminproductflagcontroller_368d9ac76af05f714092bc808a426bfc'] = 'Couleur de fond';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_b8412d578685458ecd3b9ab0780e1c22'] = 'Conditions d\'affichage';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_229eb04083e06f419f9ac494329f957d'] = 'Conditions';
 $_MODULE['<{productflags}prestashop>adminproductflagcontroller_6371fce2b7ff577730d2b74f674ee291'] = 'Définissez ici les conditions dans lesquelles ce drapeau sera affiché sur les produits. Si aucune condition n\'est définie ou remplie, les produits affichant ce drapeau doivent être sélectionnés manuellement à partir de la fiche produit dans le back-office.	';

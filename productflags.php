@@ -65,11 +65,11 @@ class ProductFlags extends Module
      */
     private function installTab(): bool
     {
-        $tab = new Tab((int)\Tab::getIdFromClassName('AdminProductFlag'));
+        $tab = new Tab((int)Tab::getIdFromClassName('AdminProductFlag'));
         $tab->class_name = 'AdminProductFlag';
         $tab->id_parent = 0;
         $tab->module = $this->name;
-        foreach(\Language::getLanguages(false) as $lang) {
+        foreach(Language::getLanguages(false) as $lang) {
             $tab->name[$lang['id_lang']] = $this->displayName;
         }
         if (!$tab->add()) {
@@ -84,7 +84,7 @@ class ProductFlags extends Module
      */
     private function uninstallTab(): bool
     {
-        $tab = new Tab((int)\Tab::getIdFromClassName('AdminProductFlag'));
+        $tab = new Tab((int)Tab::getIdFromClassName('AdminProductFlag'));
         if (Validate::isLoadedObject($tab) && !$tab->delete()) {
             return false;
         }
@@ -167,7 +167,7 @@ class ProductFlags extends Module
     /**
      * @throws PrestaShopDatabaseException
      */
-    public function hookActionObjectProductFlagUpdateAfter($object)
+    public function hookActionObjectProductFlagUpdateAfter()
     {
         $this->generateCSSFile();
     }
@@ -175,7 +175,7 @@ class ProductFlags extends Module
     /**
      * @throws PrestaShopDatabaseException
      */
-    public function hookActionObjectProductFlagDeleteAfter($object)
+    public function hookActionObjectProductFlagDeleteAfter()
     {
         $this->generateCSSFile();
     }

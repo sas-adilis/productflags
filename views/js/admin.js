@@ -1,3 +1,7 @@
+jscolor.presets.default = {
+    format:'hexa'
+};
+
 $(document).ready(function () {
     $('#conditions').on('click', '[data-toggle="collapse"]', function (e) {
         e.preventDefault();

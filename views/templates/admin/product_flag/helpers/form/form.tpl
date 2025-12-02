@@ -105,6 +105,12 @@
                 </div>
             </div>
         </div>
+    {elseif $input.type == 'color'}
+        <input type="text"
+               data-jscolor=""
+               {if isset($input.class)}class="{$input.class}"{/if}
+               name="{$input.name}"
+               value="{$fields_value[$input.name]|escape:'htmlall':'UTF-8'}" />
     {else}
         {$smarty.block.parent}
     {/if}
